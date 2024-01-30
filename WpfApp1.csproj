@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="currentUser.json" />
+    <None Remove="Resources\bluedot.jpg" />
     <None Remove="Resources\cs.png" />
     <None Remove="Resources\cs2.png" />
     <None Remove="user.json" />
@@ -19,6 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="currentUser.json" />
+    <Resource Include="Resources\bluedot.jpg" />
     <Resource Include="Resources\cs.png" />
     <Resource Include="Resources\cs2.png" />
   </ItemGroup>
