@@ -23,6 +23,14 @@ namespace WpfApp1
         public string Location { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
+
+        public string NameAndLocation
+        {
+            get
+            {
+                return $"{Location} ({Name})";
+            }
+        }
     }
     public partial class MainWindow : Window
     {
@@ -69,10 +77,40 @@ namespace WpfApp1
         private void SubmitButton_Click(object sender, RoutedEventArgs e)
         {
             // 获取用户输入的姓名
-            string userName = LocationInput.Text;
+            string userName = NameInput.Text;
+            string userLocation = LocationInput.Text;
+            string userPhone = PhoneInput.Text;
+            string userEmail = EmailInput.Text;
+        
 
-            // 保存用户名到 user.ini
-            SaveUserName(userName);
+           
+            
+            if (IsUniqueUser(users, userName, userLocation))
+                {
+                    // Add new user
+                    User newUser = new User
+                    {
+                        Name = userName,
+                        Location = userLocation,
+                        Phone = userPhone,
+                        Email = userEmail
+                    };
+                    users.Add(newUser);
+                    SaveUsers(users, "users.json");
+                    SaveUsers(new List<User> { newUser }, "currentUser.json");
+            }
+                else
+                {
+                    // Save to currentUser.json
+                    User currentUser = new User
+                    {
+                        Name = userName,
+                        Location = userLocation,
+                        Phone = userPhone,
+                        Email = userEmail
+                    };
+                    SaveUsers(new List<User> { currentUser }, "currentUser.json");
+                }
 
             // 启动蓝点窗口
             BlueDot blueDotWindow = new BlueDot();
@@ -83,6 +121,11 @@ namespace WpfApp1
             trayIcon.Visible = true;
         }
 
+        private bool IsUniqueUser(List<User> users, string name, string location)
+        {
+            return !users.Any(u => u.Name == name && u.Location == location);
+        }
+
         private void LoadUsers()
         {
             if (File.Exists(JsonFilePath))
@@ -91,7 +134,7 @@ namespace WpfApp1
                 users = JsonConvert.DeserializeObject<List<User>>(json);
                 foreach (var user in users)
                 {
-                    UserSelection.Items.Add($"{user.Name} ({user.Location})");
+                    UserSelection.Items.Add(user.NameAndLocation);
 
                 }
             }
@@ -105,13 +148,13 @@ namespace WpfApp1
         {
             if (UserSelection.SelectedIndex != -1)
             {
-                string selectedUserName = UserSelection.SelectedItem.ToString();
+                string selectedUserInfo = UserSelection.SelectedItem.ToString();
                 // Assuming the format in the ComboBox is "Name (Location)"
-                var parts = selectedUserName.Split(new[] { " (" }, StringSplitOptions.None);
-                string name = parts[0];
-                string location = parts.Length > 1 ? parts[1].TrimEnd(')') : "";
+                //var parts = selectedUserName.Split(new[] { " (" }, StringSplitOptions.None);
+                //string name = parts[0];
+                //string location = parts.Length > 1 ? parts[1].TrimEnd(')') : "";
 
-                var selectedUser = users.FirstOrDefault(u => u.Name == name && u.Location == location);
+                var selectedUser = users.FirstOrDefault(u => u.NameAndLocation == selectedUserInfo);
                 if (selectedUser != null)
                 {
                     NameInput.Text = selectedUser.Name;
@@ -122,18 +165,15 @@ namespace WpfApp1
             }
         }
 
-        private void SaveUserName(string userName)
+        private void SaveUsers(List<User> users, string filePath)
         {
             try
             {
                 // 获取应用程序的安装目录
-                string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
-                // 拼接文件路径
-                string filePath = Path.Combine(appDirectory, "user.ini");
+                string json = JsonConvert.SerializeObject(users, Formatting.Indented);
 
                 // 写入文件
-                File.WriteAllText(filePath, userName);
+                File.WriteAllText(filePath, json);
             }
             catch (Exception ex)
             {
