@@ -8,8 +8,15 @@
             <ImageBrush ImageSource="Resources/cs.png"/>
         </Ellipse.Fill>
         <Ellipse.ContextMenu>
-            <ContextMenu>
-                <MenuItem Header="Show Users" Click="ShowUsers_Click"/>
+            <ContextMenu Opened="ContextMenu_Opening">
+                <MenuItem Header="Show Online co-workers around you" Click="ShowUsers_Click"/>
+                <MenuItem Header="Advanced tools" Name="AdvancedToolsMenu" ContextMenuOpening="ContextMenu_Opening">
+                    <!-- Subitems for Advanced tools -->
+                    <MenuItem Header="Tool 1" />
+                    <MenuItem Header="Tool 2" />
+                    <MenuItem Header="Tool 3" />
+                    <!-- Add more subitems as needed -->
+                </MenuItem>
                 <MenuItem Header="Exit" Click="ExitMenuItem_Click"/>
             </ContextMenu>
         </Ellipse.ContextMenu>
