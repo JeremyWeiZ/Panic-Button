@@ -3,6 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="User List" Height="300" Width="300">
     <Grid>
-        <ListBox x:Name="UserListBox"/>
+        <ListView x:Name="UserListBox">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Location" Width="Auto" DisplayMemberBinding="{Binding Location}" />
+                    <GridViewColumn Header="Name" Width="Auto" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn Header="Phone" Width="Auto" DisplayMemberBinding="{Binding Phone}" />
+                    <GridViewColumn Header="Email" Width="Auto" DisplayMemberBinding="{Binding Email}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
     </Grid>
 </Window>

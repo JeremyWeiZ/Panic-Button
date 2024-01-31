@@ -15,11 +15,11 @@ namespace WpfApp1
     {
         protected override void OnExit(ExitEventArgs e)
         {
-            if (MainWindow is MainWindow main)
-            {
-                // Ensure the tray icon is hidden on exit
-                main.trayIcon.Visible = false;
-            }
+            //if (MainWindow is MainWindow main)
+            //{
+            //    // Ensure the tray icon is hidden on exit
+            //    main.trayIcon.Visible = false;
+            //}
 
             base.OnExit(e);
         }
