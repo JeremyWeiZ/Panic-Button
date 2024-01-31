@@ -14,69 +14,32 @@ using Newtonsoft.Json;
 using Microsoft.VisualBasic.ApplicationServices;
 using System.Windows.Controls;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace WpfApp1
 {
-    public class User
-    {
-        public string Name { get; set; }
-        public string Location { get; set; }
-        public string Phone { get; set; }
-        public string Email { get; set; }
-
-        public string NameAndLocation
-        {
-            get
-            {
-                return $"{Location} ({Name})";
-            }
-        }
-    }
     public partial class MainWindow : Window
     {
-        public NotifyIcon trayIcon;
+        
         private List<User> users = new List<User>();
-        private const string JsonFilePath = "users.json";
+        private const string JsonFilePath = "users.ini";
         public MainWindow()
         {
             InitializeComponent();
             LoadUsers();
             
-            trayIcon = new NotifyIcon
-            {
-                Icon = new Icon("Resources/bluedot.ico"), // Specify the path to your icon file
-                Visible = false,
-                ContextMenuStrip = new ContextMenuStrip()
-            };
-         
-
-            // Add an Exit menu item
-            trayIcon.ContextMenuStrip.Items.Add("Show Users", null, ShowUsers_Click);
-            trayIcon.ContextMenuStrip.Items.Add("Exit", null, (sender, e) => Application.Current.Shutdown());
+           
         }
 
         
 
-        private void ShowUsers_Click(object sender, EventArgs e)
-        {
-            // Logic to show the user list window
-            var userListWindow = new UserListWindow();
-
-            List<string> userNames = FetchUserNamesFromNetwork(); // Replace with actual method to fetch user names
-            userListWindow.UpdateUserList(userNames);
-            userListWindow.Show();
-        }
-
-        private List<string> FetchUserNamesFromNetwork()
-        {
-            // Implement your logic to fetch user names from the network
-            return new List<string>(); // Placeholder
-        }
+        
+        
 
 
         private void SubmitButton_Click(object sender, RoutedEventArgs e)
         {
-            // 获取用户输入的姓名
+            
             string userName = NameInput.Text;
             string userLocation = LocationInput.Text;
             string userPhone = PhoneInput.Text;
@@ -96,8 +59,8 @@ namespace WpfApp1
                         Email = userEmail
                     };
                     users.Add(newUser);
-                    SaveUsers(users, "users.json");
-                    SaveUsers(new List<User> { newUser }, "currentUser.json");
+                    SaveUsers(users, "users.ini");
+                    SaveUsers(new List<User> { newUser }, "currentUser.ini");
             }
                 else
                 {
@@ -109,7 +72,7 @@ namespace WpfApp1
                         Phone = userPhone,
                         Email = userEmail
                     };
-                    SaveUsers(new List<User> { currentUser }, "currentUser.json");
+                    SaveUsers(new List<User> { currentUser }, "currentUser.ini");
                 }
 
             // 启动蓝点窗口
@@ -118,7 +81,7 @@ namespace WpfApp1
 
             // 隐藏主窗口
             this.Hide();
-            trayIcon.Visible = true;
+            
         }
 
         private bool IsUniqueUser(List<User> users, string name, string location)

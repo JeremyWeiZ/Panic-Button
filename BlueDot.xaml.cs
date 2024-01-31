@@ -18,21 +18,45 @@ using System.Net;
 using System.Threading;
 using Newtonsoft.Json;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using Microsoft.VisualBasic.ApplicationServices;
+using System.Collections.ObjectModel;
+using System.Windows.Forms;
+using System.Drawing;
+
+using MessageBox = System.Windows.MessageBox;
+using Application = System.Windows.Application;
 
 namespace WpfApp1
 {
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
+    /// 
+
     public partial class BlueDot : Window
     {
+        public NotifyIcon trayIcon;
 
-            public BlueDot()
+
+        public BlueDot()
             {
                 InitializeComponent();
                 StartListening();
+            
+                trayIcon = new NotifyIcon
+                {
+                    Icon = new Icon("Resources/bluedot.ico"), // Specify the path to your icon file
+                    Visible = false,
+                    ContextMenuStrip = new ContextMenuStrip()
+                };
+                trayIcon.Visible = true;
 
-            }
+
+            // Add an Exit menu item
+                trayIcon.ContextMenuStrip.Items.Add("Show Users", null, ShowUsers_Click);
+                trayIcon.ContextMenuStrip.Items.Add("Exit", null, (sender, e) => Application.Current.Shutdown());
+
+        }
 
 
 
@@ -59,7 +83,7 @@ namespace WpfApp1
 
         private void Ellipse_MouseUp(object sender, MouseButtonEventArgs e)
             {
-            // 改变颜色并显示警报
+           
                 if (e.ChangedButton == MouseButton.Left)
                 {
                     Dot.Fill = new SolidColorBrush(Colors.Red);
@@ -67,7 +91,7 @@ namespace WpfApp1
                     
                 }
 
-            // 如果需要，可以在这里添加警报声音的代码
+           
         }
 
         private bool keepListening = true;
@@ -75,6 +99,11 @@ namespace WpfApp1
         private List<string> receivedUserNames = new List<string>();
 
         private ManualResetEvent receivedUserNamesEvent = new ManualResetEvent(false);
+
+        private ObservableCollection<User> users = new ObservableCollection<User>();
+
+        private Thread listenerThread = null;
+
 
         private void BroadcastDangerAlert()
         {
@@ -84,8 +113,8 @@ namespace WpfApp1
 
             try
             {
-                string userName = ReadUserNameFromIniFile();
-                string dangerMessage = $"ALERT_DANGER_{userName}";
+                User currentUser  = ReadUserNameFromIniFile();
+                string dangerMessage = $"ALERT_DANGER_Name: {currentUser.Name}, Location: {currentUser.Location}, Phone: {currentUser.Phone}, Email: {currentUser.Email}";
                 byte[] bytesToSend = Encoding.ASCII.GetBytes(dangerMessage);
                 udpClient.Send(bytesToSend, bytesToSend.Length, ip);
                 ShowAlert();
@@ -102,64 +131,83 @@ namespace WpfApp1
         }
         private void StartListening()
         {
-            Thread listenerThread = new Thread(() =>
+
+            if (listenerThread == null || !listenerThread.IsAlive)
             {
-                UdpClient udpClient = new UdpClient(12345);
-                IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 12345);
-
-                try
+                listenerThread = new Thread(() =>
                 {
-                    while (keepListening)
+                    UdpClient udpClient = new UdpClient(12345);
+                    IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 12345);
+
+
+                    try
                     {
-                        byte[] bytesReceived = udpClient.Receive(ref remoteEP);
-                        string message = Encoding.ASCII.GetString(bytesReceived);
-
-                        //if (message == "REQUEST_USERNAMES")
-                        //{
-                        //    SendUserNameBack(remoteEP.Address.ToString());
-                        //}
-                        //else
-                        //{
-                        //    if (!receivedUserNames.Contains(message))
-                        //    receivedUserNames.Add(message);
-
-                        //}
-                        if (message.StartsWith("ALERT_DANGER_"))
+                        while (keepListening)
                         {
-                            
-                            string dangerUserName = message.Substring("ALERT_DANGER_".Length);
-                            if(dangerUserName!= ReadUserNameFromIniFile())
-                            MessageBox.Show($"{dangerUserName} is in danger!", "Danger Alert");
+                            byte[] bytesReceived = udpClient.Receive(ref remoteEP);
+                            string message = Encoding.ASCII.GetString(bytesReceived);
 
-                        }
-                        else if (message == "REQUEST_USERNAMES")
-                        {
-                            receivedUserNamesEvent.Reset();
-                            SendUserNameBack(remoteEP.Address.ToString());
-                        }
-                        else
-                        {
-                            if (!receivedUserNames.Contains(message))
+                            //if (message == "REQUEST_USERNAMES")
+                            //{
+                            //    SendUserNameBack(remoteEP.Address.ToString());
+                            //}
+                            //else
+                            //{
+                            //    if (!receivedUserNames.Contains(message))
+                            //    receivedUserNames.Add(message);
+
+                            //}
+                            if (message.StartsWith("ALERT_DANGER_"))
                             {
-                                receivedUserNames.Add(message);
-                                receivedUserNamesEvent.Set();
+                                User currentUser = ReadUserNameFromIniFile();
+                                string dangerMessage = message.Substring("ALERT_DANGER_".Length);
+                                if (dangerMessage != $"Name: {currentUser.Name}, Location: {currentUser.Location}, Phone: {currentUser.Phone}, Email: {currentUser.Email}")
+                                    MessageBox.Show($"{dangerMessage} is in danger!", "Danger Alert");
+
                             }
-                            
+                            else if (message == "REQUEST_USERNAMES")
+                            {
+                                receivedUserNamesEvent.Reset();
+                                SendUserNameBack(remoteEP.Address.ToString());
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    User receivedUser = JsonConvert.DeserializeObject<User>(message);
+
+
+                                    if (!users.Any(u => u.Name == receivedUser.Name && u.Location == receivedUser.Location))
+                                    {
+
+                                        Application.Current.Dispatcher.Invoke(() => users.Add(receivedUser));
+
+                                    }
+                                }
+                                catch (JsonException jsonEx)
+                                {
+                                    // Handle JSON parsing exception
+                                    MessageBox.Show("Json Error" + jsonEx);
+                                }
+
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    // Handle exceptions
-                }
-                finally
-                {
-                    udpClient.Close();
-                }
-            });
+                    catch (Exception ex)
+                    {
+                        // Handle exceptions
+                    }
+                    finally
+                    {
+                        udpClient.Close();
+                    }
+                });
 
-            listenerThread.IsBackground = true;
-            listenerThread.Start();
+                listenerThread.IsBackground = true;
+                listenerThread.Start();
+
+            }
+            
         }
 
         private void SendUserNameBack(string requesterIPAddress)
@@ -169,8 +217,17 @@ namespace WpfApp1
 
             try
             {
-                string userName = ReadUserNameFromIniFile(); // Retrieves the user name from user.ini
-                byte[] bytesToSend = Encoding.ASCII.GetBytes(userName);
+                User currentUser = ReadUserNameFromIniFile();
+
+                string jsonUserInfo = JsonConvert.SerializeObject(new
+                {
+                    Name = currentUser.Name,
+                    Location = currentUser.Location,
+                    Phone = currentUser.Phone,
+                    Email = currentUser.Email
+                });
+
+                byte[] bytesToSend = Encoding.ASCII.GetBytes(jsonUserInfo);
                 udpClient.Send(bytesToSend, bytesToSend.Length, requesterEP);
             }
             catch (Exception ex)
@@ -185,7 +242,9 @@ namespace WpfApp1
         }
 
 
-        private void BroadcastRequestForUsernames()
+
+
+        public static void BroadcastRequestForUsernames()
         {
            
            UdpClient udpClient = new UdpClient();
@@ -207,7 +266,7 @@ namespace WpfApp1
             }
         }
 
-        private void Ellipse_MouseMove(object sender, MouseEventArgs e)
+        private void Ellipse_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
             {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
@@ -239,54 +298,60 @@ namespace WpfApp1
         //    userListWindow.Show();
         //}
 
-        private void ShowUsers_Click(object sender, RoutedEventArgs e)
+        private void ShowUsers_Click(object sender, EventArgs e)
         {
-
             receivedUserNamesEvent = new ManualResetEvent(false);
-            var userListWindow = new UserListWindow();
-            receivedUserNames = new List<string> { ReadUserNameFromIniFile() };
-            BroadcastRequestForUsernames();
+            ShowUsers();
 
             // Wait for the receivedUserNamesEvent to be set
-            bool isReceived = receivedUserNamesEvent.WaitOne(TimeSpan.FromSeconds(0.5)); // 0.5 seconds timeout
+            //bool isReceived = receivedUserNamesEvent.WaitOne(TimeSpan.FromSeconds(0.5)); // 0.5 seconds timeout
 
-            if (isReceived)
-            {
+            //if (isReceived)
+            //{
 
-                List<string> userNames = FetchUserNamesFromNetwork();
-                userListWindow.UpdateUserList(userNames);
-                userListWindow.Show();
-            }
-            else { MessageBox.Show("No users in your local network, please "); }
+            //    userListWindow.UpdateUserList("test");
+            //    userListWindow.Show();
+            //}
+            //else { MessageBox.Show("No users in your local network, please "); }
         }
 
-        private List<string> FetchUserNamesFromNetwork()
+        public void ShowUsers() 
         {
-            // Implement your logic to fetch user names from the network
-            return receivedUserNames; 
+            var userListWindow = new UserListWindow(users);
+
+            BroadcastRequestForUsernames();
+            userListWindow.Show();
         }
+
 
         private void ShowAlert()
             {
-                string userName = ReadUserNameFromIniFile();
-                MessageBox.Show($"Attention! {userName} pressed the button", "Alert");
-                Dot.Fill = new SolidColorBrush(Colors.Blue);
+                string userName = ReadUserNameFromIniFile().Name;
+                string userLocation = ReadUserNameFromIniFile().Location;
+                string userPhone = ReadUserNameFromIniFile().Phone;
+                string userEmail = ReadUserNameFromIniFile().Email;
+                MessageBox.Show($"Attention! {userName} at {userLocation} pressed the button, call {userName} at {userPhone} or email at {userEmail}", "Alert");
+                
         }
 
-        private string ReadUserNameFromIniFile()
+        private User ReadUserNameFromIniFile()
         {
             try
             {
                 string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                string filePath = Path.Combine(appDirectory, "user.ini");
-                return File.ReadAllText(filePath);
+                string filePath = Path.Combine(appDirectory, "currentUser.ini");
+                string jsonContent = File.ReadAllText(filePath);
+
+                List<User> users = JsonConvert.DeserializeObject<List<User>>(jsonContent);
+
+                return users!=null && users.Count >0 ? users[0] : new User();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error reading user name");
-                return "Unknown User";
+                return new User { Name = "Unknown User" };
             }
         }
     }
-    }
+ }
 
