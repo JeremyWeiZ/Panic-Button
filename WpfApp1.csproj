@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="advanced_tool\test.txt" />
     <None Remove="currentUser.ini" />
     <None Remove="currentUser.json" />
     <None Remove="Resources\bluedot.jpg" />
@@ -23,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="advanced_tool\test.txt" />
     <Resource Include="currentUser.ini" />
     <Resource Include="Resources\bluedot.jpg" />
     <Resource Include="Resources\cs.png" />

@@ -25,6 +25,7 @@ using System.Drawing;
 
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
+using System.Diagnostics;
 
 namespace WpfApp1
 {
@@ -350,6 +351,55 @@ namespace WpfApp1
             {
                 MessageBox.Show("Error reading user name");
                 return new User { Name = "Unknown User" };
+            }
+        }
+
+        private void ContextMenu_Opening(object sender, RoutedEventArgs e)
+        {
+            // Assuming 'AdvancedToolsMenu' is the x:Name of the 'Advanced tools' MenuItem in XAML
+            MenuItem advancedToolsMenu = this.AdvancedToolsMenu;
+            
+            // Clear existing dynamically added items
+            advancedToolsMenu.Items.Clear();
+
+            // Path to the advanced_tool folder
+            string folderPath = "advanced_tool";
+            
+            // Check if the directory exists
+            if (Directory.Exists(folderPath))
+            {
+                // Get all items in the folder
+                var files = Directory.GetFiles(folderPath);
+
+                // Create a MenuItem for each file
+                foreach (var file in files)
+                {
+                    MenuItem menuItem = new MenuItem();
+                    menuItem.Header = Path.GetFileName(file);
+                    menuItem.Click += (s, args) => OpenTool(file); // Event handler for opening the file
+                    advancedToolsMenu.Items.Add(menuItem);
+                }
+            }
+        }
+
+        private void OpenTool(string filePath)
+        {
+            // Logic to open the file or perform the desired action
+            try
+            {
+                // Use ProcessStartInfo to specify the file you want to open
+                var psi = new ProcessStartInfo
+                {
+                    FileName = filePath,
+                    UseShellExecute = true // Important for opening files in their associated application
+                };
+
+                Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                // Handle or log the exception as needed
+                MessageBox.Show($"Error opening file: {ex.Message}");
             }
         }
     }

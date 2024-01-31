@@ -166,6 +166,7 @@ AutoTest.Net/
 *.xsd.cs
 
 Resources/
+advanced_tool/
 
 # OpenCover UI analysis results
 OpenCover/
