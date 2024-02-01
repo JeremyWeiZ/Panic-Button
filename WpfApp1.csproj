@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="advanced_tool\FirewallScript.bat" />
+    <None Remove="advanced_tool\Minimize Everything.exe" />
+    <None Remove="advanced_tool\Snapshot To Clipboard.exe" />
+    <None Remove="advanced_tool\TeamViewerQS %2822%29.exe" />
     <None Remove="advanced_tool\test.txt" />
     <None Remove="currentUser.ini" />
     <None Remove="currentUser.json" />
@@ -19,11 +23,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Cryptlex.LexActivator" Version="3.25.2" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="advanced_tool\FirewallScript.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="advanced_tool\Minimize Everything.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="advanced_tool\Snapshot To Clipboard.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="advanced_tool\TeamViewerQS (22).exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="advanced_tool\test.txt" />
     <Resource Include="currentUser.ini" />
     <Resource Include="Resources\bluedot.jpg" />
