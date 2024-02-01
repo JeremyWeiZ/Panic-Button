@@ -26,6 +26,7 @@ using System.Drawing;
 using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 using System.Diagnostics;
+using Cryptlex;
 
 namespace WpfApp1
 {
@@ -42,8 +43,52 @@ namespace WpfApp1
         public BlueDot()
             {
                 InitializeComponent();
+                try
+                {
+                    LexActivator.SetProductFile("C:\\Users\\Jeremy\\source\\repos\\WpfApp1_0909\\Resources\\product_v10e60476-ec82-4cc7-8767-f5a1d01d2001.dat");
+                    LexActivator.SetProductId("10e60476-ec82-4cc7-8767-f5a1d01d2001", LexActivator.PermissionFlags.LA_USER);
+                    int status;
+                    LexActivator.SetLicenseKey("895CCE-4FAFD5-4647B5-EC4B4F-210DCF-A52BBA");
+                    status = LexActivator.ActivateLicense();
+                    if (status == LexStatusCodes.LA_OK || status == LexStatusCodes.LA_EXPIRED || status == LexStatusCodes.LA_SUSPENDED)
+                    {
+                        MessageBox.Show("Activation successful");
+                    }
+                    else
+                    {
+                        // Activation failed
+                        MessageBox.Show("Activation failed");
+                    }
+                }
+                catch (LexActivatorException ex)
+                {
+                    // handle error
+                    MessageBox.Show("License check Error code: " + ex.Code.ToString() + " Error message: " + ex.Message);
+                    return;
+
+                }
+                try
+                {
+
+                    int status = LexActivator.IsLicenseGenuine();
+                    if (status == LexStatusCodes.LA_OK || status == LexStatusCodes.LA_EXPIRED || status == LexStatusCodes.LA_SUSPENDED || status == LexStatusCodes.LA_GRACE_PERIOD_OVER)
+                    {
+                        MessageBox.Show("License is activated: " + status.ToString());
+                    }
+                    else
+                    {
+                        MessageBox.Show("License is not activated: " + status.ToString());
+                    }
+                }
+                catch (LexActivatorException ex)
+                {
+                    MessageBox.Show("Activation check Error code: " + ex.Code.ToString() + " Error message: " + ex.Message);
+                }
+                
                 StartListening();
+                
             
+
                 trayIcon = new NotifyIcon
                 {
                     Icon = new Icon("Resources/bluedot.ico"), // Specify the path to your icon file
@@ -55,45 +100,15 @@ namespace WpfApp1
 
             // Add an Exit menu item
                 trayIcon.ContextMenuStrip.Items.Add("Show Users", null, ShowUsers_Click);
+                ToolStripMenuItem advancedToolsMenuItem = new ToolStripMenuItem("Advanced Tools");
+                advancedToolsMenuItem.DropDownOpening += new EventHandler(TrayContextMenu_Opening);
+                trayIcon.ContextMenuStrip.Items.Add(advancedToolsMenuItem);
                 trayIcon.ContextMenuStrip.Items.Add("Exit", null, (sender, e) => Application.Current.Shutdown());
 
         }
 
+      
 
-
-        //private void Window_LocationChanged(object sender, EventArgs e)
-        //{
-        //    const int threshold = 30; // Pixels from the top screen edge to trigger full screen
-        //    if (this.Top <= threshold)
-        //    {
-        //        // Prevent the window from maximizing or moving off-screen
-        //        this.Top = threshold;
-        //    }
-
-        //    if (this.Left <= threshold)
-        //    {
-        //        // Prevent the window from maximizing or moving off-screen
-        //        this.Left = 50;
-        //    }
-
-
-        //}
-
-
-
-
-        private void Ellipse_MouseUp(object sender, MouseButtonEventArgs e)
-            {
-           
-                if (e.ChangedButton == MouseButton.Left)
-                {
-                    Dot.Fill = new SolidColorBrush(Colors.Red);
-                    BroadcastDangerAlert();
-                    
-                }
-
-           
-        }
 
         private bool keepListening = true;
 
@@ -104,6 +119,27 @@ namespace WpfApp1
         private ObservableCollection<User> users = new ObservableCollection<User>();
 
         private Thread listenerThread = null;
+
+        private void Ellipse_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                Dot.Fill = new SolidColorBrush(Colors.Red);
+                BroadcastDangerAlert();
+
+            }
+        }
+
+        private void Window_StateChanged(object sender, EventArgs e)
+        {
+            if (this.WindowState == WindowState.Minimized || this.WindowState == WindowState.Maximized)
+            {
+                this.WindowState = WindowState.Normal;
+            }
+        }
+
+
 
 
         private void BroadcastDangerAlert()
@@ -354,11 +390,41 @@ namespace WpfApp1
             }
         }
 
+        private void TrayContextMenu_Opening(object sender, EventArgs e)
+        {
+            ToolStripMenuItem advancedToolsMenu = sender as ToolStripMenuItem;
+
+            // Clear existing dynamically added items
+            advancedToolsMenu.DropDownItems.Clear();
+
+            // Path to the advanced_tool folder
+            string folderPath = "advanced_tool";
+
+            // Check if the directory exists
+            if (Directory.Exists(folderPath))
+            {
+                // Get all items in the folder
+                var files = Directory.GetFiles(folderPath);
+
+                // Create a ToolStripMenuItem for each file
+                foreach (var file in files)
+                {
+                    ToolStripMenuItem menuItem = new ToolStripMenuItem();
+                    menuItem.Text = Path.GetFileName(file);
+                    menuItem.Click += (s, args) => OpenTool(file); // Event handler for opening the file
+                    advancedToolsMenu.DropDownItems.Add(menuItem);
+                }
+            }
+        }
+
+
         private void ContextMenu_Opening(object sender, RoutedEventArgs e)
         {
             // Assuming 'AdvancedToolsMenu' is the x:Name of the 'Advanced tools' MenuItem in XAML
             MenuItem advancedToolsMenu = this.AdvancedToolsMenu;
-            
+            ToolStripMenuItem advancedToolsStripMenu = sender as ToolStripMenuItem;
+
+
             // Clear existing dynamically added items
             advancedToolsMenu.Items.Clear();
 
@@ -380,6 +446,12 @@ namespace WpfApp1
                     advancedToolsMenu.Items.Add(menuItem);
                 }
             }
+        }
+
+        private void About_Click(object sender, RoutedEventArgs e) 
+        {
+            About aboutWindow = new About();
+            aboutWindow.ShowDialog();
         }
 
         private void OpenTool(string filePath)

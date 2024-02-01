@@ -44,44 +44,99 @@ namespace WpfApp1
             string userLocation = LocationInput.Text;
             string userPhone = PhoneInput.Text;
             string userEmail = EmailInput.Text;
+            if (string.IsNullOrWhiteSpace(userLocation))
+            {
+                LocationError.Text = "Please enter a location.";
+                LocationError.Visibility = Visibility.Visible;
+                return;
+            }
+            else
+            {
+                // Hide the error message and proceed with your logic
+                LocationError.Visibility = Visibility.Collapsed;
+                UpdateUsers(userName, userLocation, userPhone, userEmail);
+                BlueDot blueDotWindow = new BlueDot();
+                blueDotWindow.Show();
+                this.Hide();
+                // Proceed with your submit logic here
+            }
+
         
 
-           
-            
+
+
+
+            //if (IsUniqueUser(users, userName, userLocation))
+            //    {
+            ////        // Add new user
+            ////        User newUser = new User
+            ////        {
+            ////            Name = userName,
+            ////            Location = userLocation,
+            ////            Phone = userPhone,
+            ////            Email = userEmail
+            ////        };
+            ////        users.Add(newUser);
+            ////        SaveUsers(users, "users.ini");
+            ////        SaveUsers(new List<User> { newUser }, "currentUser.ini");
+            //}
+            //    else
+            //    {
+            //        // Save to currentUser.json
+            //        User currentUser = new User
+            //        {
+            //            Name = userName,
+            //            Location = userLocation,
+            //            Phone = userPhone,
+            //            Email = userEmail
+            //        };
+            //        SaveUsers(new List<User> { currentUser }, "currentUser.ini");
+            //    }
+
+
+
+        }
+        private void DeleteUser_Click(object sender, RoutedEventArgs e)
+            {
+            string userName = NameInput.Text;
+            string userLocation = LocationInput.Text;
             if (IsUniqueUser(users, userName, userLocation))
-                {
-                    // Add new user
-                    User newUser = new User
-                    {
-                        Name = userName,
-                        Location = userLocation,
-                        Phone = userPhone,
-                        Email = userEmail
-                    };
-                    users.Add(newUser);
-                    SaveUsers(users, "users.ini");
-                    SaveUsers(new List<User> { newUser }, "currentUser.ini");
+            {
+                System.Windows.MessageBox.Show("Can't find the user.");
             }
-                else
-                {
-                    // Save to currentUser.json
-                    User currentUser = new User
-                    {
-                        Name = userName,
-                        Location = userLocation,
-                        Phone = userPhone,
-                        Email = userEmail
-                    };
-                    SaveUsers(new List<User> { currentUser }, "currentUser.ini");
-                }
+            else
+            {
+                var user = users.First(u => u.Name == userName && u.Location == userLocation);
+                users.Remove(user);
+                SaveUsers(users, "users.ini");
+                System.Windows.MessageBox.Show($"This user is deleted.");
+            }
+        }
 
-            // 启动蓝点窗口
-            BlueDot blueDotWindow = new BlueDot();
-            blueDotWindow.Show();
+        private void UpdateUsers(string userName, string userLocation, string userPhone, string userEmail) 
+        {
+            User newUser = new User
+            {
+                Name = userName,
+                Location = userLocation,
+                Phone = userPhone,
+                Email = userEmail
+            };
+            if (IsUniqueUser(users, userName, userLocation))
+            {
+                // Add new user
+                users.Add(newUser);
+                
+            }
+            else 
+            {
+                var user = users.First(u => u.Name == userName && u.Location == userLocation);
+                user.Phone = userPhone;
+                user.Email = userEmail;
+            }
+            SaveUsers(users, "users.ini");
+            SaveUsers(new List<User> { newUser }, "currentUser.ini");
 
-            // 隐藏主窗口
-            this.Hide();
-            
         }
 
         private bool IsUniqueUser(List<User> users, string name, string location)
@@ -132,10 +187,10 @@ namespace WpfApp1
         {
             try
             {
-                // 获取应用程序的安装目录
+                
                 string json = JsonConvert.SerializeObject(users, Formatting.Indented);
 
-                // 写入文件
+                
                 File.WriteAllText(filePath, json);
             }
             catch (Exception ex)
