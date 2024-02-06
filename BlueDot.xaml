@@ -9,8 +9,17 @@
         </Ellipse.Fill>
         <Ellipse.ContextMenu>
             <ContextMenu Opened="ContextMenu_Opening">
+                <MenuItem Header="Selected Assistance Type" FontWeight="Bold" Visibility="Collapsed" Name="SelectedAssistanceTypeItem"/>
                 <MenuItem Header="Show Online co-workers around you" Click="ShowUsers_Click"/>
-                <MenuItem Header="Advanced tools" Name="AdvancedToolsMenu" ContextMenuOpening="ContextMenu_Opening">
+                <MenuItem Header="Assistance type" FontWeight="Bold" Name="AssistanceTypeMenu">
+                    <!-- Subitems for Assistance type -->
+                    <MenuItem Header="Assistance Needed" IsCheckable="True" IsChecked="True" Click="AssistanceType_Click" StaysOpenOnClick="True"/>
+                    <MenuItem Header="Fire" IsCheckable="True" Click="AssistanceType_Click" StaysOpenOnClick="True"/>
+                    <MenuItem Header="Intruder" IsCheckable="True" Click="AssistanceType_Click" StaysOpenOnClick="True"/>
+                    <MenuItem Header="Lockdown" IsCheckable="True" Click="AssistanceType_Click" StaysOpenOnClick="True"/>
+                    <!-- Add more subitems as needed -->
+                </MenuItem>
+                    <MenuItem Header="Advanced tools" Name="AdvancedToolsMenu" ContextMenuOpening="ContextMenu_Opening">
                     <!-- Subitems for Advanced tools -->
                     <MenuItem Header="Tool 1" />
                     <MenuItem Header="Tool 2" />
