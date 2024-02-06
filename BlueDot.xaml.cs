@@ -199,8 +199,13 @@ namespace WpfApp1
                             {
                                 User currentUser = ReadUserNameFromIniFile();
                                 string dangerMessage = message.Substring("ALERT_DANGER_".Length);
-                                if (dangerMessage != $"Name: {currentUser.Name}, Location: {currentUser.Location}, Phone: {currentUser.Phone}, Email: {currentUser.Email}")
-                                    MessageBox.Show($"{dangerMessage} is in danger!", "Danger Alert");
+                                if (dangerMessage != $"Name: {currentUser.Name}, Location: {currentUser.Location}, Phone: {currentUser.Phone}, Email: {currentUser.Email}") 
+                                {
+                                    AlertWindow alertWindow = new AlertWindow();
+                                    alertWindow.ShowAlert(dangerMessage);
+                                }
+                              
+                                   
 
                             }
                             else if (message == "REQUEST_USERNAMES")

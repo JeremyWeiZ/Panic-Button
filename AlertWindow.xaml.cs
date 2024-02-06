@@ -28,6 +28,13 @@ namespace WpfApp1
         {
             InitializeComponent();
             StartFlashingText();
+            
+        }
+
+        public void ShowAlert(string message)
+        {
+            TriggerInfo.Text = message;
+            this.Show();
         }
 
         private void StartFlashingText()
