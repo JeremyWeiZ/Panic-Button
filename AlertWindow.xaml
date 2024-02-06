@@ -5,11 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
-        Title="Alert" Height="200" Width="400"
+        Title="Alert" Height="200" Width="500"
         WindowStartupLocation="CenterScreen"
         Topmost="True" Background="Red">
 
     <Grid>
-        <TextBlock Name="AlertTextBlock" Text="ALERT! Someone has triggered the alert." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap" TextAlignment="Center"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+
+        </Grid.RowDefinitions>
+        <TextBlock Name="AlertTextBlock" Text="ALERT! Someone has triggered the alert." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap" TextAlignment="Center"  Grid.Row="0"/>
+        <TextBlock  Text="Location and Contact details:" VerticalAlignment="Top" HorizontalAlignment="Center" FontSize="15" FontWeight="Bold" Foreground="White" TextWrapping="Wrap" Grid.Row="1"/>
+        <TextBlock Name="TriggerInfo" Text="User: A Location: B, Phone: C, Email: D" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="15" FontWeight="DemiBold" Foreground="White" TextWrapping="Wrap" Grid.Row="1"/>
     </Grid>
 </Window>
