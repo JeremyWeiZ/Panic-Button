@@ -18,6 +18,7 @@
     <None Remove="Resources\bluedot.jpg" />
     <None Remove="Resources\cs.png" />
     <None Remove="Resources\cs2.png" />
+    <None Remove="Resources\Siren.wav" />
     <None Remove="user.json" />
     <None Remove="users.ini" />
   </ItemGroup>
@@ -46,6 +47,9 @@
     <Resource Include="Resources\bluedot.jpg" />
     <Resource Include="Resources\cs.png" />
     <Resource Include="Resources\cs2.png" />
+    <Resource Include="Resources\Siren.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="users.ini" />
   </ItemGroup>
 

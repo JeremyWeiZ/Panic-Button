@@ -27,6 +27,7 @@ using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 using System.Diagnostics;
 using Cryptlex;
+using System.Media;
 
 namespace WpfApp1
 {
@@ -367,6 +368,8 @@ namespace WpfApp1
                 string userLocation = ReadUserNameFromIniFile().Location;
                 string userPhone = ReadUserNameFromIniFile().Phone;
                 string userEmail = ReadUserNameFromIniFile().Email;
+                SoundPlayerHelper.PlaySiren();
+                
                 MessageBox.Show($"Attention! {userName} at {userLocation} pressed the button, call {userName} at {userPhone} or email at {userEmail}", "Alert");
                 
         }
@@ -423,7 +426,7 @@ namespace WpfApp1
             // Assuming 'AdvancedToolsMenu' is the x:Name of the 'Advanced tools' MenuItem in XAML
             MenuItem advancedToolsMenu = this.AdvancedToolsMenu;
             ToolStripMenuItem advancedToolsStripMenu = sender as ToolStripMenuItem;
-
+            UpdateSelectedAssistanceType(GetCheckedAssistanceTypeItem().Header.ToString());
 
             // Clear existing dynamically added items
             advancedToolsMenu.Items.Clear();
@@ -452,6 +455,72 @@ namespace WpfApp1
         {
             About aboutWindow = new About();
             aboutWindow.ShowDialog();
+        }
+
+        private MenuItem GetCheckedAssistanceTypeItem()
+        {
+            // Assuming 'AssistanceTypeMenu' is the name of the MenuItem that contains the assistance type options.
+            // If it is not named, you will need to find it dynamically or reference it directly if you have a direct reference.
+            var assistanceTypeMenu = this.AssistanceTypeMenu; // Replace with actual reference if named differently
+
+            if (assistanceTypeMenu != null)
+            {
+                foreach (MenuItem item in assistanceTypeMenu.Items)
+                {
+                    if (item.IsChecked)
+                    {
+                        return item;
+                    }
+                }
+            }
+
+            return null; // No item is checked
+        }
+
+        private void AssistanceType_Click(object sender, RoutedEventArgs e)
+        {
+            // Cast the sender back to a MenuItem
+            var clickedItem = sender as MenuItem;
+
+            // Access the parent MenuItem to iterate over its items
+            var parentItem = clickedItem.Parent as MenuItem;
+
+            if (parentItem != null)
+            {
+                foreach (MenuItem item in parentItem.Items)
+                {
+                    // Ensure that we uncheck all items except the one that was just clicked
+                    if (item != clickedItem)
+                    {
+                        item.IsChecked = false;
+                    }
+                }
+            }
+
+            // The clicked item's IsChecked property is automatically toggled by WPF
+            if (clickedItem != null) 
+            {
+                UpdateSelectedAssistanceType(clickedItem.Header.ToString());
+                
+            }
+        }
+
+        private void UpdateSelectedAssistanceType(string assistanceType)
+        {
+            var topMenuItem = this.SelectedAssistanceTypeItem; // Assuming 'this' is the context of your window/control
+            if (topMenuItem != null)
+            {
+                topMenuItem.Header = assistanceType;
+                topMenuItem.Visibility = Visibility.Visible;
+                topMenuItem.FontWeight = FontWeights.Bold;
+
+                // Optionally, reset the check state if the menu is dynamic and can change based on other conditions
+                //var assistanceMenuItem = FindAssistanceMenuItem(assistanceType);
+                //if (assistanceMenuItem != null)
+                //{
+                //    assistanceMenuItem.IsChecked = true;
+                //}
+            }
         }
 
         private void OpenTool(string filePath)
