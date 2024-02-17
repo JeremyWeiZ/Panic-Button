@@ -28,6 +28,7 @@ using Application = System.Windows.Application;
 using System.Diagnostics;
 using Cryptlex;
 using System.Media;
+using System.Windows.Threading;
 
 namespace WpfApp1
 {
@@ -39,58 +40,35 @@ namespace WpfApp1
     public partial class BlueDot : Window
     {
         public NotifyIcon trayIcon;
+        public AlertWindow alertWindow2 = new AlertWindow();
+
 
 
         public BlueDot()
             {
+                
+
+
                 InitializeComponent();
-                try
-                {
-                    LexActivator.SetProductFile("C:\\Users\\Jeremy\\source\\repos\\WpfApp1_0909\\Resources\\product_v10e60476-ec82-4cc7-8767-f5a1d01d2001.dat");
-                    LexActivator.SetProductId("10e60476-ec82-4cc7-8767-f5a1d01d2001", LexActivator.PermissionFlags.LA_USER);
-                    int status;
-                    LexActivator.SetLicenseKey("895CCE-4FAFD5-4647B5-EC4B4F-210DCF-A52BBA");
-                    status = LexActivator.ActivateLicense();
-                    if (status == LexStatusCodes.LA_OK || status == LexStatusCodes.LA_EXPIRED || status == LexStatusCodes.LA_SUSPENDED)
-                    {
-                        MessageBox.Show("Activation successful");
-                    }
-                    else
-                    {
-                        // Activation failed
-                        MessageBox.Show("Activation failed");
-                    }
-                }
-                catch (LexActivatorException ex)
-                {
-                    // handle error
-                    MessageBox.Show("License check Error code: " + ex.Code.ToString() + " Error message: " + ex.Message);
-                    return;
-
-                }
-                try
-                {
-
-                    int status = LexActivator.IsLicenseGenuine();
-                    if (status == LexStatusCodes.LA_OK || status == LexStatusCodes.LA_EXPIRED || status == LexStatusCodes.LA_SUSPENDED || status == LexStatusCodes.LA_GRACE_PERIOD_OVER)
-                    {
-                        MessageBox.Show("License is activated: " + status.ToString());
-                    }
-                    else
-                    {
-                        MessageBox.Show("License is not activated: " + status.ToString());
-                    }
-                }
-                catch (LexActivatorException ex)
-                {
-                    MessageBox.Show("Activation check Error code: " + ex.Code.ToString() + " Error message: " + ex.Message);
-                }
                 
-                StartListening();
-                
-            
+                //testing(alertWindow2);
+                StartListening(alertWindow2);
+                originalFill = Dot.Fill as ImageBrush; // Store the original ImageBrush fill
 
-                trayIcon = new NotifyIcon
+
+
+
+
+
+
+
+
+
+
+
+
+
+            trayIcon = new NotifyIcon
                 {
                     Icon = new Icon("Resources/bluedot.ico"), // Specify the path to your icon file
                     Visible = false,
@@ -108,8 +86,11 @@ namespace WpfApp1
 
         }
 
-      
 
+
+
+        private DateTime lastClickTime = DateTime.MinValue;
+        private ImageBrush originalFill;
 
         private bool keepListening = true;
 
@@ -123,13 +104,32 @@ namespace WpfApp1
 
         private void Ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
-
-            if (e.ChangedButton == MouseButton.Left)
+            TimeSpan clickSpan = DateTime.Now - lastClickTime;
+            if (clickSpan.TotalMilliseconds < System.Windows.Forms.SystemInformation.DoubleClickTime) // Adjust the threshold as needed
             {
-                Dot.Fill = new SolidColorBrush(Colors.Red);
-                BroadcastDangerAlert();
+                if (e.ChangedButton == MouseButton.Left)
+                {
+                    // Change the Dot's Fill color to red temporarily
+                    Dot.Fill = new SolidColorBrush(Colors.Red);
 
+                    // Broadcast the danger alert
+                    BroadcastDangerAlert();
+
+                    // Create a DispatcherTimer to revert the fill back after 1 second
+                    DispatcherTimer timer = new DispatcherTimer();
+                    timer.Interval = TimeSpan.FromSeconds(1);
+                    timer.Tick += (s, args) =>
+                    {
+                        // Revert the Dot's Fill back to the original ImageBrush
+                        Dot.Fill = originalFill;
+
+                        // Stop and dispose the timer
+                        timer.Stop();
+                    };
+                    timer.Start();
+                }
             }
+            lastClickTime = DateTime.Now;
         }
 
         private void Window_StateChanged(object sender, EventArgs e)
@@ -137,6 +137,31 @@ namespace WpfApp1
             if (this.WindowState == WindowState.Minimized || this.WindowState == WindowState.Maximized)
             {
                 this.WindowState = WindowState.Normal;
+            }
+        }
+        private void Size_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem clickedItem = (MenuItem)sender;
+            switch (clickedItem.Header.ToString().ToLower())
+            {
+                case "small":
+                    this.Width = 50;
+                    this.Height = 50;
+                    Dot.Width = 50;
+                    Dot.Height = 50;
+                    break;
+                case "medium":
+                    this.Width = 80;
+                    this.Height = 80;
+                    Dot.Width = 80;
+                    Dot.Height = 80;
+                    break;
+                case "large":
+                    this.Width = 120;
+                    this.Height = 120;
+                    Dot.Width = 120;
+                    Dot.Height = 120;
+                    break;
             }
         }
 
@@ -152,10 +177,19 @@ namespace WpfApp1
             try
             {
                 User currentUser  = ReadUserNameFromIniFile();
-                string dangerMessage = $"ALERT_DANGER_Name: {currentUser.Name}, Location: {currentUser.Location}, Phone: {currentUser.Phone}, Email: {currentUser.Email}";
+                string alertType = "Assistance is Required";
+                
+
+                if (GetCheckedAssistanceTypeItem().Header.ToString() != null)
+                {
+                    alertType = GetCheckedAssistanceTypeItem().Header.ToString();
+                }
+                
+                string dangerMessage = $"ALERT_DANGER_Name: {currentUser.Name}, Location: {currentUser.Location}, Phone: {currentUser.Phone}, Email: {currentUser.Email}#8AlertType:{alertType}";
+                
                 byte[] bytesToSend = Encoding.ASCII.GetBytes(dangerMessage);
                 udpClient.Send(bytesToSend, bytesToSend.Length, ip);
-                ShowAlert();
+                
             }
             catch (Exception ex)
             {
@@ -167,11 +201,13 @@ namespace WpfApp1
                 udpClient.Close();
             }
         }
-        private void StartListening()
+        private void StartListening(AlertWindow alertWindow)
         {
+            
 
             if (listenerThread == null || !listenerThread.IsAlive)
             {
+                
                 listenerThread = new Thread(() =>
                 {
                     UdpClient udpClient = new UdpClient(12345);
@@ -180,6 +216,7 @@ namespace WpfApp1
 
                     try
                     {
+                        
                         while (keepListening)
                         {
                             byte[] bytesReceived = udpClient.Receive(ref remoteEP);
@@ -187,7 +224,7 @@ namespace WpfApp1
 
                             //if (message == "REQUEST_USERNAMES")
                             //{
-                            //    SendUserNameBack(remoteEP.Address.ToString());
+                            //    SendUserNameBack(remoteEP.Address.ToString());3w2eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
                             //}
                             //else
                             //{
@@ -195,17 +232,25 @@ namespace WpfApp1
                             //    receivedUserNames.Add(message);
 
                             //}
+                            
+
                             if (message.StartsWith("ALERT_DANGER_"))
                             {
                                 User currentUser = ReadUserNameFromIniFile();
-                                string dangerMessage = message.Substring("ALERT_DANGER_".Length);
-                                if (dangerMessage != $"Name: {currentUser.Name}, Location: {currentUser.Location}, Phone: {currentUser.Phone}, Email: {currentUser.Email}") 
+                                string[] parts = message.Split(new string[] { "#8" }, StringSplitOptions.None);
+                                string dangerMessage = parts[0].Replace("ALERT_DANGER_", "");
+                                var fields = dangerMessage.Split(new string[] { ", " }, StringSplitOptions.None);
+                                string alertType = parts[1];
+                                if (dangerMessage != $"Name: {currentUser.Name}, Location: {currentUser.Location}, Phone: {currentUser.Phone}, Email: {currentUser.Email}")
                                 {
-                                    AlertWindow alertWindow = new AlertWindow();
-                                    alertWindow.ShowAlert(dangerMessage);
+                                    Application.Current.Dispatcher.Invoke(() => alertWindow.ShowAlert(fields[0], fields[1], fields[2], fields[3], alertType));
+
                                 }
-                              
-                                   
+
+                                
+
+
+
 
                             }
                             else if (message == "REQUEST_USERNAMES")
@@ -218,12 +263,16 @@ namespace WpfApp1
                                 try
                                 {
                                     User receivedUser = JsonConvert.DeserializeObject<User>(message);
+                                    MessageBox.Show(message);
 
 
                                     if (!users.Any(u => u.Name == receivedUser.Name && u.Location == receivedUser.Location))
                                     {
 
+                                        
                                         Application.Current.Dispatcher.Invoke(() => users.Add(receivedUser));
+                                        Thread.Sleep(200);
+                                        
 
                                     }
                                 }
@@ -272,6 +321,7 @@ namespace WpfApp1
 
                 byte[] bytesToSend = Encoding.ASCII.GetBytes(jsonUserInfo);
                 udpClient.Send(bytesToSend, bytesToSend.Length, requesterEP);
+                MessageBox.Show(requesterIPAddress + bytesToSend);
             }
             catch (Exception ex)
             {
@@ -343,39 +393,37 @@ namespace WpfApp1
 
         private void ShowUsers_Click(object sender, EventArgs e)
         {
-            receivedUserNamesEvent = new ManualResetEvent(false);
-            ShowUsers();
+            //receivedUserNamesEvent = new ManualResetEvent(false);
+            
 
-            // Wait for the receivedUserNamesEvent to be set
-            //bool isReceived = receivedUserNamesEvent.WaitOne(TimeSpan.FromSeconds(0.5)); // 0.5 seconds timeout
+            //// Wait for the receivedUserNamesEvent to be set
+            //bool isReceived = receivedUserNamesEvent.WaitOne(TimeSpan.FromSeconds(1)); // 0.5 seconds timeout
 
             //if (isReceived)
             //{
-
-            //    userListWindow.UpdateUserList("test");
-            //    userListWindow.Show();
+            //    ShowUsers();
             //}
-            //else { MessageBox.Show("No users in your local network, please "); }
+            ShowUsers();
+
         }
 
         public void ShowUsers() 
         {
+            users = new ObservableCollection<User>();
+            BroadcastRequestForUsernames();
             var userListWindow = new UserListWindow(users);
 
-            BroadcastRequestForUsernames();
+            
             userListWindow.Show();
         }
 
 
-        private void ShowAlert()
+        private void ShowAlert(string userInfo)
             {
-                string userName = ReadUserNameFromIniFile().Name;
-                string userLocation = ReadUserNameFromIniFile().Location;
-                string userPhone = ReadUserNameFromIniFile().Phone;
-                string userEmail = ReadUserNameFromIniFile().Email;
-                SoundPlayerHelper.PlaySiren();
+
                 
-                MessageBox.Show($"Attention! {userName} at {userLocation} pressed the button, call {userName} at {userPhone} or email at {userEmail}", "Alert");
+                
+                MessageBox.Show(userInfo);
                 
         }
 

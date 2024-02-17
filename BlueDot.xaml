@@ -2,8 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        Topmost="True" Opacity="0.5" Width="50" Height="50" StateChanged="Window_StateChanged">
-    <Ellipse Name="Dot" Width="50" Height="50" MouseUp="Ellipse_MouseUp" MouseMove="Ellipse_MouseMove">
+        Topmost="True" Opacity="0.5" Width="80" Height="80" StateChanged="Window_StateChanged" ShowInTaskbar="False">
+    <Ellipse Name="Dot" Width="80" Height="80" MouseUp="Ellipse_MouseUp" MouseMove="Ellipse_MouseMove">
         <Ellipse.Fill>
             <ImageBrush ImageSource="Resources/cs.png"/>
         </Ellipse.Fill>
@@ -14,9 +14,9 @@
                 <MenuItem Header="Assistance type" FontWeight="Bold" Name="AssistanceTypeMenu">
                     <!-- Subitems for Assistance type -->
                     <MenuItem Header="Assistance Needed" IsCheckable="True" IsChecked="True" Click="AssistanceType_Click" StaysOpenOnClick="True"/>
-                    <MenuItem Header="Fire" IsCheckable="True" Click="AssistanceType_Click" StaysOpenOnClick="True"/>
-                    <MenuItem Header="Intruder" IsCheckable="True" Click="AssistanceType_Click" StaysOpenOnClick="True"/>
-                    <MenuItem Header="Lockdown" IsCheckable="True" Click="AssistanceType_Click" StaysOpenOnClick="True"/>
+                    <MenuItem Header="Fire" IsCheckable="True" Click="AssistanceType_Click" />
+                    <MenuItem Header="Intruder" IsCheckable="True" Click="AssistanceType_Click" />
+                    <MenuItem Header="Lockdown" IsCheckable="True" Click="AssistanceType_Click" />
                     <!-- Add more subitems as needed -->
                 </MenuItem>
                     <MenuItem Header="Advanced tools" Name="AdvancedToolsMenu" ContextMenuOpening="ContextMenu_Opening">
@@ -25,6 +25,11 @@
                     <MenuItem Header="Tool 2" />
                     <MenuItem Header="Tool 3" />
                     <!-- Add more subitems as needed -->
+                </MenuItem>
+                <MenuItem Header="Size" Name="SizeMenu">
+                    <MenuItem Header="Small" Click="Size_Click"/>
+                    <MenuItem Header="Medium" Click="Size_Click"/>
+                    <MenuItem Header="Large" Click="Size_Click"/>
                 </MenuItem>
                 <MenuItem Header="About" Click="About_Click"/>
                 <MenuItem Header="Exit" Click="ExitMenuItem_Click"/>

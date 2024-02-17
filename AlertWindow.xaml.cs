@@ -29,14 +29,25 @@ namespace WpfApp1
             InitializeComponent();
             StartFlashingText();
             
+
         }
 
-        public void ShowAlert(string message)
+        public void ShowAlert(string name, string location,string email, string phone, string alertMessage)
         {
-            TriggerInfo.Text = message;
+            NameTextBlock.Text = name;
+            LocationTextBlock.Text = location;
+            EmailTextBlock.Text = email;
+            PhoneTextBlock.Text = phone;
+            AlertType.Text = alertMessage;
+            SoundPlayerHelper.PlaySoundRepeatedly();
             this.Show();
         }
-
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true; // Prevents the window from closing
+            SoundPlayerHelper.StopSound();
+            this.Hide(); // Hides the window instead
+        }
         private void StartFlashingText()
         {
             timer = new DispatcherTimer();

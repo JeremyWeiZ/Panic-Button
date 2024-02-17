@@ -5,18 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
-        Title="Alert" Height="200" Width="500"
-        WindowStartupLocation="CenterScreen"
+        Title="Alert" Height="300" Width="500" 
+    WindowStartupLocation="CenterScreen"
         Topmost="True" Background="Red">
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <!-- For the ALERT! text -->
+            <RowDefinition Height="Auto" />
+            <!-- For the Assistance required text -->
             <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-
+            <!-- For the details -->
         </Grid.RowDefinitions>
-        <TextBlock Name="AlertTextBlock" Text="ALERT! Someone has triggered the alert." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap" TextAlignment="Center"  Grid.Row="0"/>
-        <TextBlock  Text="Location and Contact details:" VerticalAlignment="Top" HorizontalAlignment="Center" FontSize="15" FontWeight="Bold" Foreground="White" TextWrapping="Wrap" Grid.Row="1"/>
-        <TextBlock Name="TriggerInfo" Text="User: A Location: B, Phone: C, Email: D" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="15" FontWeight="DemiBold" Foreground="White" TextWrapping="Wrap" Grid.Row="1"/>
+        <TextBlock Name="AlertTextBlock" Text="ALERT!" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap" TextAlignment="Center" Grid.Row="0"/>
+        <TextBlock Name="AlertType" Text="Assistance is required" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="24" FontWeight="Bold" Foreground="White" TextWrapping="Wrap" TextAlignment="Center" Grid.Row="1" Margin="10,10,10,0"/>
+
+        <StackPanel Grid.Row="2" Margin="10">
+            <TextBlock Text="Location and Contact details of the person who pressed the button:" FontSize="15" FontWeight="Bold" Foreground="White"/>
+            <TextBlock x:Name="LocationTextBlock" Text="Location: " HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="15" FontWeight="DemiBold" Foreground="White"/>
+            <TextBlock x:Name="NameTextBlock" Text="Name: " FontSize="15" FontWeight="DemiBold" Foreground="White"/>
+            <TextBlock x:Name="PhoneTextBlock" Text="Phone: " HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="15" FontWeight="DemiBold" Foreground="White"/>
+            <TextBlock x:Name="EmailTextBlock" Text="Email: " HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="15" FontWeight="DemiBold" Foreground="White"/>
+        </StackPanel>
     </Grid>
 </Window>
