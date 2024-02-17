@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Forms; // Add this namespace
 using System.Drawing; // Add this namespace
 using Path = System.IO.Path;
+using MessageBox = System.Windows.MessageBox;
 using Application = System.Windows.Application;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,6 +16,8 @@ using Microsoft.VisualBasic.ApplicationServices;
 using System.Windows.Controls;
 using System.Linq;
 using System.Collections.ObjectModel;
+using Cryptlex;
+using TextBox = System.Windows.Controls.TextBox;
 
 namespace WpfApp1
 {
@@ -27,14 +30,35 @@ namespace WpfApp1
         {
             InitializeComponent();
             LoadUsers();
-            
-           
+            LocationInput.TextChanged += ValidateInput;
+            NameInput.TextChanged += ValidateInput;
+            PhoneInput.TextChanged += ValidateInput;
+            EmailInput.TextChanged += ValidateInput;
+
+
         }
 
-        
 
-        
-        
+
+        private void ValidateInput(object sender, TextChangedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                // Check if the text contains unsupported characters
+                if (textBox.Text.Contains("#") || textBox.Text.Contains(","))
+                {
+                    // Display an error message or handle as needed
+                    MessageBox.Show("Unsupported format: Input cannot contain '#' or ','.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                    // Optionally, remove the unsupported characters from the input
+                    textBox.Text = textBox.Text.Replace("#", string.Empty).Replace(",", string.Empty);
+
+                    // Set the cursor back to the end of the text
+                    textBox.CaretIndex = textBox.Text.Length;
+                }
+            }
+        }
+
 
 
         private void SubmitButton_Click(object sender, RoutedEventArgs e)
@@ -53,6 +77,74 @@ namespace WpfApp1
             else
             {
                 // Hide the error message and proceed with your logic
+                try
+                {
+                    LexActivator.SetProductData("RDQ3RUNGRDk1QTU1Rjc2MkU4REUyNDVBNjc1NjNCMjc=.NQB0kcM7O8rBy+XjbyaEN6sv3ObwIQWFBvRx8L0blRc1wPi9Cbk6zHOjFzPVQndXFufUYOmr7TH2uYAlGeL1CZu0uqKMFut2XxyFuR2GYo1PMCITv9ZCySI64eo7CYOfYEA7PXZGSZFLhnZxAKx5v4/m/i1GsSrodRCx/j4sxMqibjDalW+z09MJcW0L2op4VP1kh9I9QNyB/8RhGHFTs23jcE7NmnjSJ9+1zGnHCXEulN+ONSoFy5zkWs+wrgBZG6QWjTQXhMYdESscV8Igykz/YIaNV+hqF7peGX1K3zZ6uyjUb16T2Keir2zjqJrDPHo8QqEgsKC8/Hu13QtU6F700/BBd1L7NJTW+2q0dWqVDN/xC3CW9V2/AZInlw1pAi+8N6a0bZfS76l1P7YEvPDA1TKViyMHnlVby+VcXLAjgWrGgrqpcvHCmDe+brpeLYi2FnyonS4oyi5XaB8tpb+/hRu2lGBPaEwfC2eHIGd6QjL1RvQMUlab4gCPLQvYS1Co87NAiweYcwbhTSEyL73owUJg0i5mhcybTZm6LIZlCMIAq/AKFVROxOgdpArz7gvl+f+SGOOFxKsik64xbGE8Op+40RGHm6eHnSpQc0dcWciAHb/S0MPllBwKmIz0H84o4CFtfsVjBiVvxAEw6xd6fSgGwhxo5JUgGmJuR5+d2236mFJaGphMfNTxYNX9l2fEg28soVaoaZ7dniqkgozcoKcDA+mHNlkaxxDbZ/VigMXMmiZPZrHo7ft+JOPpQ35teQHwu9tUHxZz/Bp9Zu4S3ZQDJZ9Iublsf9T2qY0CqbaQHukawY06Jz7RHSqq");
+                    LexActivator.SetProductId("10e60476-ec82-4cc7-8767-f5a1d01d2001", LexActivator.PermissionFlags.LA_USER);
+                    int status;
+                    String license = File.ReadAllText("license.txt");
+                    LexActivator.SetLicenseKey(license);
+                    status = LexActivator.ActivateLicense();
+                    if (status == LexStatusCodes.LA_OK || status == LexStatusCodes.LA_EXPIRED || status == LexStatusCodes.LA_SUSPENDED)
+                    {
+                        Logger.Log("Activation successful");
+                       
+                    }
+                    else
+                    {
+                        // Activation failed
+                        Logger.Log("Activation failed");
+                        MessageBox.Show("Activation failed");
+
+                    }
+                }
+                catch (LexActivatorException ex)
+                {
+                    // handle error
+
+
+                    if (ex.Message is "Invalid license key.")
+                    {
+                        Logger.Log("Invalied license key, prompt to enter new key");
+                        LicenseWindow licenseWindow = new LicenseWindow();
+                        licenseWindow.Show();
+                    }
+                    else if (ex.Code is 58)
+                    {
+                        MessageBox.Show(ex.Message+" Please upgrade your plan or try again after 3 minutes");
+                        Logger.Log(ex.Message+ " Please upgrade your plan or try again after 3 minutes");
+                    }
+                    else
+                    {
+                        MessageBox.Show("License check Error code: " + ex.Code.ToString() + " Error message: " + ex.Message + " Please contact us at support@cybersquad.com.au");
+                        Logger.Log("License check Error code: " + ex.Code.ToString() + " Error message: " + ex.Message + " Please contact us at support@cybersquad.com.au");
+                    }
+                    return;
+
+
+                }
+                try
+                {
+
+                    int status = LexActivator.IsLicenseGenuine();
+                    if (status == LexStatusCodes.LA_OK || status == LexStatusCodes.LA_EXPIRED || status == LexStatusCodes.LA_SUSPENDED || status == LexStatusCodes.LA_GRACE_PERIOD_OVER)
+                    {
+                        Logger.Log("License is activated: " + status.ToString());
+                    }
+                    else
+                    {
+                        Logger.Log("License is not activated: " + status.ToString());
+                        MessageBox.Show("License is not activated: " + status.ToString());
+                        return;
+                    }
+                }
+                catch (LexActivatorException ex)
+                {
+                    Logger.Log("Activation check Error code: " + ex.Code.ToString() + " Error message: " + ex.Message);
+                    MessageBox.Show("Activation check Error code: " + ex.Code.ToString() + " Error message: " + ex.Message);
+                    return;
+
+                }
                 LocationError.Visibility = Visibility.Collapsed;
                 UpdateUsers(userName, userLocation, userPhone, userEmail);
                 BlueDot blueDotWindow = new BlueDot();
@@ -110,6 +202,7 @@ namespace WpfApp1
                 users.Remove(user);
                 SaveUsers(users, "users.ini");
                 System.Windows.MessageBox.Show($"This user is deleted.");
+                LoadUsers();
             }
         }
 
@@ -125,8 +218,8 @@ namespace WpfApp1
             if (IsUniqueUser(users, userName, userLocation))
             {
                 // Add new user
-                users.Add(newUser);
-                
+                users.Insert(0, newUser);
+
             }
             else 
             {
@@ -150,6 +243,7 @@ namespace WpfApp1
             {
                 string json = File.ReadAllText(JsonFilePath);
                 users = JsonConvert.DeserializeObject<List<User>>(json);
+                UserSelection.Items.Clear();
                 foreach (var user in users)
                 {
                     UserSelection.Items.Add(user.NameAndLocation);

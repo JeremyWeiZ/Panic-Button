@@ -1,0 +1,35 @@
+﻿<Window x:Class="WpfApp1.LicenseWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="LicenseWindow" Height="150" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <!-- Adjusted to use remaining space -->
+            <ColumnDefinition Width="Auto"/>
+            <!-- Adjusted for right alignment of buttons -->
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Label for License Key, ensuring it can expand as needed -->
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Name="licenseKeyLabel" Content="Enter License Key:" HorizontalAlignment="Left" Margin="10,10,0,10"/>
+
+        <!-- TextBox for input, spanning across both columns for full width -->
+        <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" x:Name="licenseKeyTextBox" Margin="10,0,10,0" VerticalAlignment="Center"/>
+
+        <!-- StackPanel for OK and Exit buttons, aligned at the bottom right -->
+        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+            <Button x:Name="okButton" Content="OK" Width="75" Margin="5,0" Click="OkButton_Click"/>
+            <Button x:Name="exitButton" Content="Exit" Width="75" Margin="5,0" Click="ExitButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

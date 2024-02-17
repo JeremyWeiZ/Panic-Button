@@ -1,40 +1,48 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Media;
-using System.Timers;
-using System.Windows.Media;
-using System.Windows;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace WpfApp1
+public static class SoundPlayerHelper
 {
-    public class SoundPlayerHelper
+    private static Task _playbackTask;
+    private static CancellationTokenSource _cancellationTokenSource;
+    private static readonly string RelativePath = @"Resources\converted_Siren.wav";
+    private static readonly string FullPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, RelativePath);
+
+    public static void PlaySoundRepeatedly()
     {
-        private static MediaPlayer player = new MediaPlayer();
-        private static Uri uri = new Uri("Resources/converted_Siren.wav",UriKind.Relative);
-        //private static Timer stopTimer = new Timer(10000); // 10 seconds
-
-        public static void PlaySiren()
+        if (_playbackTask == null || _playbackTask.IsCompleted)
         {
-            player.MediaFailed += (s, e) =>
+            _cancellationTokenSource = new CancellationTokenSource();
+            var token = _cancellationTokenSource.Token;
+
+            _playbackTask = Task.Run(() =>
             {
-                MessageBox.Show($"Media Failed: {e.ErrorException.Message}");
-            };
+                var player = new SoundPlayer(FullPath);
+                try
+                {
+                    player.Load(); // Attempt to load the sound file in advance
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error loading sound file: {ex.Message}");
+                    return; // Exit if cannot load the file
+                }
 
-            player.Volume = 1;
-            player.Open(uri);
-            player.Play();
-
-            //stopTimer.Elapsed += StopTimer_Elapsed;
-            //stopTimer.Start();
+                while (!token.IsCancellationRequested)
+                {
+                    player.PlaySync(); // This will play the sound once; the loop will cause it to repeat
+                }
+            }, token);
         }
+    }
 
-        //private static void StopTimer_Elapsed(object sender, ElapsedEventArgs e)
-        //{
-        //    player.Stop();
-        //    stopTimer.Stop();
-        //}
+    public static void StopSound()
+    {
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource = null; // Dispose of the CancellationTokenSource if needed
     }
 }
